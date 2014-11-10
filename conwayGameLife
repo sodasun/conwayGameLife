@@ -1,0 +1,314 @@
+import javax.swing.JFrame;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.font.*;
+import java.awt.geom.*;
+import java.awt.event.*;
+import java.util.*;
+import javax.swing.border.*;
+import java.awt.BorderLayout;
+/**
+ * This is a program implementing the GUI for the Game of Life.
+ * @version 1.7.0_25 2013-10-23
+ * @author Yahui Sun
+ */
+
+/**
+* This is a class of specific ConwayLife Game
+* including main method
+*/
+
+public class ConwayGame{
+	
+	private final static int DEFAULT_WIDTH = 30;
+	private final static int DEFAULT_HEIGHT = 20;
+	private static int width;
+	private static int height;
+	
+	/**
+	 * The method transfer the commnand parameters to
+	 * the constructor of <code>ConwayFrame</code>
+	 * and the constructor of <code>ConwayMatrix<code>
+	 */
+	public static void main(String[] args){
+		
+		if(args.length==2){
+			
+			width = Integer.parseInt(args[0]);
+			height = Integer.parseInt(args[1]);    //read parameters from command line
+		}
+		else{
+			
+			width = DEFAULT_WIDTH;             //if the command line input is not appropriate,assign a set of default values
+			height = DEFAULT_HEIGHT;
+		}
+			
+		EventQueue.invokeLater(new Runnable(){
+			public void run(){
+				
+				
+					
+					ConwayFrame initialFrame = new ConwayFrame();     
+					initialFrame.setSize(width*40,height*80);
+		        	initialFrame.setVisible(true);
+					ConwayMatrix initialMatrix = new ConwayMatrix(width,height);
+					initialFrame.makeConwayButton("next generation",initialMatrix);
+					initialFrame.makeClearButton("clear",initialMatrix);
+					initialFrame.add(initialMatrix.getBackPanel());
+				
+				//initialFrame.addWindowListener(new Terminator());
+				
+			}	
+		});
+	}
+}
+
+
+/**
+ * This class construct a cell arrays and fill cell into 
+ * a GridLayout panel. And it can calculate the next generation 
+ * of present state.
+ */
+class ConwayMatrix{
+	
+	private int width;
+	private int height;
+	private JPanel background = new JPanel();
+	
+	/**
+	 *basicCell caches present panels printed on frame.
+	 *Each panel is a cell.YELLOW for alive,BLACK for dead.
+	 */
+	SmallPanel[][] basicCell;        
+	int[][] alive;              // alive caches next generation state,1 for alive,0 for dead
+	//boolean[][] alives;
+	/**
+	 * This method is the Constructor with two int 
+	 * parameters, which indicates the width and the other
+	 * is the height of the cell's display. The constructor
+	 * also set the basicCell all for YELLOW,alive all for FALSE.
+	 * @param aWidth the width of the cell's display.
+	 * @param aHeight the height of the cell's display.
+	 */
+	public ConwayMatrix(int aWidth,int aHeight) {
+	
+		this.width = aHeight;
+		this.height = aWidth;
+		
+	    basicCell=new SmallPanel[width+2][height+2];
+		
+		alive=new int[width+2][height+2];
+	//	alives = new boolean[width+2][height+2];
+		
+
+		
+		 background.setLayout(new GridLayout(width,height));
+		
+		for(int i = 0;i<basicCell.length;i++){
+			for(int j = 0;j<basicCell[0].length;j++)
+			{
+				basicCell[i][j]= new SmallPanel(Color.YELLOW);
+				alive[i][j]= 0;
+				//alives[i][j]=false;
+				//cacheCell[i][j]= new SmallPanel(Color.YELLOW);
+				//background.add(basicCell[i][j]);
+			}
+		}//initialize the cellArray
+		
+	
+			
+		for(int i = 1; i<basicCell.length-1;i++){
+			for(int j=1;j<basicCell[0].length-1;j++)
+			{
+				background.add(basicCell[i][j]);
+				final JPanel temp = basicCell[i][j];
+				temp.addMouseListener(new MouseAdapter(){
+					public void mousePressed(MouseEvent e){
+				    	if(temp.getBackground()==Color.YELLOW){
+				    		temp.setBackground(Color.BLACK);           //add a MouseListener to each panel in basicCell,when mouse pressed on it,it will change color
+						}
+						else temp.setBackground(Color.YELLOW);
+					}	
+				});
+			}
+		}
+	}
+
+	/**
+	 * This method determines the next state(generation) of present basicCell 
+	 * and cache these states in array alive.
+	 */	
+	public void getNextGen(){
+		
+		for(int i = 1; i<basicCell.length-1;i++){
+			for(int j=1;j<basicCell[0].length-1;j++){
+				
+				if(basicCell[i][j].getBackground()==Color.BLACK)
+				{
+				
+					int count=0;
+		  
+	  				if (basicCell[i-1][j-1].getBackground()==Color.BLACK) count++;
+	  				if (basicCell[i-1][j].getBackground()==Color.BLACK)   count++;
+	  				if (basicCell[i-1][j+1].getBackground()==Color.BLACK) count++;
+	  				if (basicCell[i][j-1].getBackground()==Color.BLACK)   count++;
+	  				if (basicCell[i][j+1].getBackground()==Color.BLACK)   count++;
+	  				if (basicCell[i+1][j-1].getBackground()==Color.BLACK) count++;
+	  				if (basicCell[i+1][j].getBackground()==Color.BLACK)   count++;
+	  				if (basicCell[i+1][j+1].getBackground()==Color.BLACK) count++;
+					
+	  		 		if((count==2)||(count==3)) 
+						alive[i][j]=1;
+						
+						//cacheCell[i][j].setBackground(Color.BLACK);
+	  			  	else 
+						alive[i][j]=0;
+						//cacheCell[i][j].setBackground(Color.YELLOW);
+				}
+				else
+				{
+					int count=0;		  
+	  				if (basicCell[i-1][j-1].getBackground()==Color.BLACK) count++;
+	  				if (basicCell[i-1][j].getBackground()==Color.BLACK)   count++;
+	  				if (basicCell[i-1][j+1].getBackground()==Color.BLACK) count++;
+	  				if (basicCell[i][j-1].getBackground()==Color.BLACK)   count++;
+	  				if (basicCell[i][j+1].getBackground()==Color.BLACK)   count++;
+	  				if (basicCell[i+1][j-1].getBackground()==Color.BLACK) count++;
+	  				if (basicCell[i+1][j].getBackground()==Color.BLACK)   count++;
+	  				if (basicCell[i+1][j+1].getBackground()==Color.BLACK) count++;
+	  		    
+	  		    	if(count==3)
+						//cacheCell[i][j].setBackground(Color.BLACK); 
+						alive[i][j]=1;
+	  				else   
+						//cacheCell[i][j].setBackground(Color.YELLOW);
+						alive[i][j]=0;
+				}
+			}
+		}
+		
+		/**
+		 *	set next generation color
+		 */
+//		for(int m=0;m<3;m++){
+		for(int i = 1; i<width+1;i++)
+		{
+			for(int j =1 ;j<height+1;j++) 
+			{
+				if (alive[i][j]==1)
+					basicCell[i][j].setBackground(Color.BLACK);
+				else
+					basicCell[i][j].setBackground(Color.YELLOW);
+				
+				//background.remove(basicCell[i][j]);
+				//background.add(cacheCell[i][j]);
+			}
+		}
+		//}
+	}
+	/**
+	 * this method is to make all cells dead
+	 */
+	public void clearAll(){
+		
+		for(int i = 1; i<width+1;i++)
+		{
+			for(int j =1 ;j<height+1;j++) 
+			{
+				basicCell[i][j].setBackground(Color.YELLOW);
+				
+			}
+		}
+	}
+	
+	/**
+	 *@return a JPanel with all basicCell panel attatched on it.
+	 */
+	public JPanel getBackPanel()
+	{
+		return background;
+	}
+}
+
+
+/**
+ * SmallPanel is a kind of JPanel with a black border
+ */
+class SmallPanel extends JPanel{
+	
+	private Color color;
+	private Border line;
+	
+	/**
+	 *construction a smallpanel with specific color and have a black border.
+	 *@param color which is filled in the panel
+	 */
+	public SmallPanel(Color color){
+		
+		this.color = color;
+		setBackground(color);
+		line=BorderFactory.createLineBorder(Color.BLACK);
+		this.setBorder(line);
+	}
+}
+
+
+/**
+* This is a class ConwayLife Game Frame
+* set some content of the frame such as title and so on.
+*/ 	
+class ConwayFrame extends JFrame{
+	
+	private JPanel southPanel = new JPanel(); //a panel used to add buttons
+	public ConwayFrame(){
+		
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setTitle("Conwaylife Game");
+		
+		this.add(southPanel,BorderLayout.SOUTH); // put panel on south part of the frame
+	}
+	
+	/**
+	* This is method to define the behavoirs of a button
+	* when the button is clicked,the next state will show up on frame
+	*@param a String of button's name
+	*@param a ConwayMatrix object to generate corresponding next generation
+	*/ 	
+	void makeConwayButton(String aName,ConwayMatrix matrix)
+	{
+		
+		JButton button =  new JButton(aName);
+	
+		final ConwayMatrix temp_1 = matrix;
+		
+		button.addActionListener(new ActionListener(){
+			
+			public void actionPerformed(ActionEvent event){
+				
+				temp_1.getNextGen();
+				                                                //add a ActionListener to button to generate next state when clicked
+			}
+		});
+		southPanel.add(button);	
+	}
+	
+	/**
+	* This is method to define the behavoirs of a button
+	* when the button is clicked,all cells' states are to be dead
+	*@param a String of button's name
+	*@param a ConwayMatrix object to clear it basicCell
+	*/ 
+	void makeClearButton(String aName,ConwayMatrix matrix){
+		
+		JButton button = new JButton(aName);
+		final ConwayMatrix temp_2 = matrix;
+		
+		button.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent event){  // add a ActionListener to button to clear all alive cells when clicked
+				
+				temp_2.clearAll();
+			}
+		});
+		southPanel.add(button);
+	}
+}
